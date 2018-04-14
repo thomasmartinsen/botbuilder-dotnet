@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using Microsoft.Bot.Schema;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13,12 +12,12 @@ namespace Microsoft.Bot.Builder.Core.Extensions
         public bool WriteBeforeSend { get; set; } = true;
         public bool LastWriterWins { get; set; } = true;
     }
-
+ 
     /// <summary>
     /// Abstract Base class which manages details of auto loading/saving of BotState
     /// </summary>
     /// <typeparam name="StateT"></typeparam>
-    public class BotState<StateT> : IMiddleware
+    public class BotState<StateT> : IMiddleware, IReadWriteBotState
         where StateT : class, new()
     {
         private readonly StateSettings _settings;
@@ -47,7 +46,7 @@ namespace Microsoft.Bot.Builder.Core.Extensions
             await WriteFromContextService(context).ConfigureAwait(false);
         }
 
-        protected virtual async Task ReadToContextService(ITurnContext context)
+        public virtual async Task ReadToContextService(ITurnContext context)
         {
             var key = this._keyDelegate(context);
             var keys = new List<String> { key };
@@ -58,7 +57,7 @@ namespace Microsoft.Bot.Builder.Core.Extensions
             context.Services.Add(this._propertyName, state);
         }
 
-        protected virtual async Task WriteFromContextService(ITurnContext context)
+        public virtual async Task WriteFromContextService(ITurnContext context)
         {
             var state = context.Services.Get<StateT>(this._propertyName);
             await Write(context, state);
